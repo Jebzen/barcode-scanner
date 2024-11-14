@@ -187,6 +187,29 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
 
   private async _startVideo(): Promise<{}> {
     return new Promise(async (resolve, reject) => {
+
+      console.log("custom")
+
+      // Force back camera selection by deviceId
+      const deviceId = await navigator.mediaDevices
+      .enumerateDevices()
+      .then((devices) => {
+          const videoDevices = devices.filter(
+              (device) => device.kind === "videoinput" && device.label.toLowerCase().includes("back")
+          );
+          return videoDevices[1]?.deviceId || videoDevices[0]?.deviceId || undefined;
+      })
+      .catch(() => false);
+
+      // Define video constraints with the selected deviceId or fallback
+      const constraints = {
+          video: {
+              facingMode: "environment",
+              deviceId: deviceId ? { exact: deviceId as string } : undefined,
+          },
+          audio: false,
+      };
+
       await navigator.mediaDevices
         .getUserMedia({
           audio: false,
@@ -237,9 +260,9 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
         body.appendChild(parent);
 
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          const constraints: MediaStreamConstraints = {
+          /* const constraints: MediaStreamConstraints = {
             video: this._facingMode,
-          };
+          }; */
 
           navigator.mediaDevices.getUserMedia(constraints).then(
             (stream) => {
