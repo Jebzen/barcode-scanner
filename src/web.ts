@@ -15,15 +15,12 @@ import {
 } from './definitions';
 
 export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin {
-  private static _FORWARD = { facingMode: 'user' };
-  private static _BACK = { facingMode: 'environment' };
   private _formats: number[] = [];
   private _controls: IScannerControls | null = null;
   private _torchState = false;
   private _video: HTMLVideoElement | null = null;
   private _options: ScanOptions | null = null;
   private _backgroundColor: string | null = null;
-  private _facingMode: MediaTrackConstraints = BarcodeScannerWeb._BACK;
 
   async prepare(): Promise<void> {
     await this._getVideoElement();
@@ -53,7 +50,6 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
       }
     });
     if (!!_options?.cameraDirection) {
-      this._facingMode = _options.cameraDirection === CameraDirection.BACK ? BarcodeScannerWeb._BACK : BarcodeScannerWeb._FORWARD;
     }
     const video = await this._getVideoElement();
     if (video) {
@@ -187,27 +183,26 @@ export class BarcodeScannerWeb extends WebPlugin implements BarcodeScannerPlugin
 
   private async _startVideo(): Promise<{}> {
     return new Promise(async (resolve, reject) => {
-
-      console.log("custom")
+      console.log('custom');
 
       // Force back camera selection by deviceId
       const deviceId = await navigator.mediaDevices
-      .enumerateDevices()
-      .then((devices) => {
+        .enumerateDevices()
+        .then((devices) => {
           const videoDevices = devices.filter(
-              (device) => device.kind === "videoinput" && device.label.toLowerCase().includes("back")
+            (device) => device.kind === 'videoinput' && device.label.toLowerCase().includes('back')
           );
           return videoDevices[1]?.deviceId || videoDevices[0]?.deviceId || undefined;
-      })
-      .catch(() => false);
+        })
+        .catch(() => false);
 
       // Define video constraints with the selected deviceId or fallback
       const constraints = {
-          video: {
-              facingMode: "environment",
-              deviceId: deviceId ? { exact: deviceId as string } : undefined,
-          },
-          audio: false,
+        video: {
+          facingMode: 'environment',
+          deviceId: deviceId ? { exact: deviceId as string } : undefined,
+        },
+        audio: false,
       };
 
       await navigator.mediaDevices
